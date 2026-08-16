@@ -1,4 +1,5 @@
 import { Head, Link } from '@inertiajs/react';
+import { ArrowLeft } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import MetricCard from '@/Components/MetricCard';
 import ChangeBadge from '@/Components/ChangeBadge';
@@ -34,8 +35,12 @@ export default function StockShow({ stock }: StockShowProps) {
         <AppLayout>
             <Head title={`${stock.ticker} - ${stock.company.name}`} />
 
-            <Link href={route('stocks.index')} className="text-sm text-slate-500 hover:text-slate-900 hover:underline">
-                &larr; Kembali ke daftar saham
+            <Link
+                href={route('stocks.index')}
+                className="inline-flex items-center gap-1 text-sm text-slate-500 hover:text-slate-900 hover:underline"
+            >
+                <ArrowLeft aria-hidden="true" size={16} />
+                Kembali ke daftar saham
             </Link>
 
             <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
