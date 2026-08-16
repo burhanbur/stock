@@ -1,0 +1,131 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Laravel Starter Kit - External API",
+        "description": "API Documentation untuk modul eksternal. Endpoint ini dapat diakses oleh sistem pihak ketiga atau partner eksternal.",
+        "contact": {
+            "email": "burhan.mafazi@universitaspertamina.ac.id"
+        },
+        "version": "1.0.0"
+    },
+    "servers": [
+        {
+            "url": "http://localhost/laravel-starter-kit/public/api/v1",
+            "description": "Local Server"
+        },
+        {
+            "url": "https://your-dev-server.com/api/v1",
+            "description": "Development Server"
+        },
+        {
+            "url": "https://your-staging-server.com/api/v1",
+            "description": "Staging Server"
+        },
+        {
+            "url": "https://your-production-server.com/api/v1",
+            "description": "Production Server"
+        }
+    ],
+    "paths": {
+        "/payment/notification": {
+            "post": {
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Terima notifikasi pembayaran dari payment gateway",
+                "description": "Endpoint ini dipanggil oleh payment gateway (Uperpay) untuk mengirimkan notifikasi status pembayaran. Autentikasi menggunakan Bearer token dari Uperpay.",
+                "operationId": "paymentNotification",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "transaction_id",
+                                    "status",
+                                    "amount"
+                                ],
+                                "properties": {
+                                    "transaction_id": {
+                                        "type": "string",
+                                        "example": "TRX-20260328-001"
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "success",
+                                            "failed",
+                                            "pending"
+                                        ],
+                                        "example": "success"
+                                    },
+                                    "amount": {
+                                        "type": "number",
+                                        "format": "float",
+                                        "example": 150000
+                                    },
+                                    "reference_id": {
+                                        "type": "string",
+                                        "example": "REF-001"
+                                    },
+                                    "payment_method": {
+                                        "type": "string",
+                                        "example": "virtual_account"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Notifikasi berhasil diproses",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "success": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Notification processed successfully"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized - Bearer token tidak valid"
+                    },
+                    "422": {
+                        "description": "Validation Error"
+                    },
+                    "500": {
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "securitySchemes": {
+            "ApiKeyAuth": {
+                "type": "apiKey",
+                "description": "API Key untuk autentikasi. Format: laravel_[48_characters]. Hubungi administrator untuk mendapatkan API key.",
+                "name": "X-API-KEY",
+                "in": "header"
+            }
+        }
+    },
+    "tags": [
+        {
+            "name": "Payment",
+            "description": "API Endpoints untuk modul Payment"
+        }
+    ]
+}
