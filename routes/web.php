@@ -20,6 +20,10 @@ Route::group(['middleware' => ['auth']], function () {
     Route::group(['prefix' => 'stocks'], function () {
         Route::get('/', [StockController::class, 'index'])->name('stocks.index');
         Route::post('sync-prices', [StockController::class, 'syncPrices'])->name('stocks.sync-prices');
+        // Must stay above the {ticker} wildcard below, or Laravel would
+        // match "compare" as a ticker instead.
+        Route::get('compare', [StockController::class, 'compare'])->name('stocks.compare');
+        Route::post('{ticker}/watchlist', [StockController::class, 'toggleWatchlist'])->name('stocks.watchlist.toggle');
         Route::get('{ticker}', [StockController::class, 'show'])->name('stocks.show');
     });
 

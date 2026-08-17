@@ -64,6 +64,11 @@ class Stock extends Model
         return $this->hasMany(StockPrice::class);
     }
 
+    public function watchlists(): HasMany
+    {
+        return $this->hasMany(Watchlist::class);
+    }
+
     /**
      * Most recent daily price, resolved via a single correlated
      * subquery (Eloquent's "latest of many") instead of loading

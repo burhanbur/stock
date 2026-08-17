@@ -121,6 +121,22 @@ table stock_prices {
   }
 }
 
+// A user's personal shortlist of stocks to track. Per-user preference join
+// table — same shape as learning_progress (UUID PK, hard unique pair,
+// no soft deletes) rather than the dimension-table audit-column convention,
+// since toggling membership is a hard add/remove, not something with history.
+table watchlists {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  stock_id uuid [ref: > stocks.id]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, stock_id) [unique]
+  }
+}
+
 //////////////////////////////////////////////////////////////
 // LEARNING DOMAIN (Stock Learning Center)
 //////////////////////////////////////////////////////////////

@@ -13,6 +13,8 @@ export interface StockListItem {
     sector: Sector | null;
     latest_close: number | null;
     latest_trading_date: string | null;
+    is_watchlisted: boolean;
+    recommendation: StockRecommendation;
 }
 
 export interface StockPricePoint {
@@ -24,6 +26,27 @@ export interface StockPricePoint {
     volume: number;
 }
 
+export interface MomentumSignal {
+    score: number | null;
+    label: string;
+    sma20: number | null;
+    sma50: number | null;
+    momentum_percent: number | null;
+}
+
+export interface RiskSignal {
+    score: number | null;
+    label: string;
+    annualized_volatility_percent: number | null;
+}
+
+export interface StockRecommendation {
+    score: number | null;
+    label: string;
+    momentum: MomentumSignal;
+    risk: RiskSignal;
+}
+
 export interface StockDetail {
     id: string;
     ticker: string;
@@ -32,6 +55,7 @@ export interface StockDetail {
     currency: string;
     listed_at: string | null;
     is_active: boolean;
+    is_watchlisted: boolean;
     company: {
         id: string;
         name: string;
@@ -44,6 +68,34 @@ export interface StockDetail {
     change: number;
     change_percent: number;
     prices: StockPricePoint[];
+    recommendation: StockRecommendation;
+}
+
+export interface PriceLevel {
+    level: number;
+    touches: number;
+}
+
+export interface SupportResistance {
+    support: PriceLevel[];
+    resistance: PriceLevel[];
+}
+
+export interface SignalOutcome {
+    count: number;
+    win_rate: number | null;
+    avg_return_percent: number | null;
+}
+
+export interface SignalBacktest {
+    beli: SignalOutcome;
+    jual: SignalOutcome;
+    horizon_days: number;
+}
+
+export interface StockAnalysis {
+    support_resistance: SupportResistance;
+    backtest: SignalBacktest | null;
 }
 
 export interface StockListFilters {
@@ -51,6 +103,7 @@ export interface StockListFilters {
     sector_id: string | null;
     sort: string | null;
     per_page: number | null;
+    watchlist_only: boolean;
 }
 
 export interface PaginationLink {

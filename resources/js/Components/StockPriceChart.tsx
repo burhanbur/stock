@@ -1,12 +1,16 @@
-import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, TooltipContentProps, XAxis, YAxis } from 'recharts';
-import { StockPricePoint } from '@/types/stock';
+import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, TooltipContentProps, XAxis, YAxis } from 'recharts';
+import { PriceLevel, StockPricePoint } from '@/types/stock';
 
 interface StockPriceChartProps {
     prices: StockPricePoint[];
     currency: string;
+    supportLevels?: PriceLevel[];
+    resistanceLevels?: PriceLevel[];
 }
 
 const LINE_COLOR = '#2563eb';
+const SUPPORT_COLOR = '#10b981';
+const RESISTANCE_COLOR = '#ef4444';
 
 function formatPrice(value: number, currency: string): string {
     return `${currency} ${value.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
@@ -46,14 +50,15 @@ function ChartTooltip({ active, payload, currency }: TooltipContentProps & { cur
     );
 }
 
-export default function StockPriceChart({ prices, currency }: StockPriceChartProps) {
+export default function StockPriceChart({ prices, currency, supportLevels = [], resistanceLevels = [] }: StockPriceChartProps) {
     if (prices.length === 0) {
         return <div className="flex h-64 items-center justify-center text-sm text-slate-400">Belum ada data harga.</div>;
     }
 
     const closes = prices.map((p) => p.close);
-    const min = Math.min(...closes);
-    const max = Math.max(...closes);
+    const levelValues = [...supportLevels, ...resistanceLevels].map((l) => l.level);
+    const min = Math.min(...closes, ...levelValues);
+    const max = Math.max(...closes, ...levelValues);
     const padding = (max - min || max * 0.01) * 0.1;
 
     return (
@@ -90,6 +95,37 @@ export default function StockPriceChart({ prices, currency }: StockPriceChartPro
                         content={(props: TooltipContentProps) => <ChartTooltip {...props} currency={currency} />}
                         cursor={{ stroke: '#94a3b8', strokeDasharray: '3 3' }}
                     />
+
+                    {supportLevels.map((level) => (
+                        <ReferenceLine
+                            key={`support-${level.level}`}
+                            y={level.level}
+                            stroke={SUPPORT_COLOR}
+                            strokeDasharray="4 4"
+                            strokeOpacity={0.6}
+                            label={{
+                                value: level.level.toLocaleString('id-ID'),
+                                position: 'insideBottomLeft',
+                                fill: SUPPORT_COLOR,
+                                fontSize: 10,
+                            }}
+                        />
+                    ))}
+                    {resistanceLevels.map((level) => (
+                        <ReferenceLine
+                            key={`resistance-${level.level}`}
+                            y={level.level}
+                            stroke={RESISTANCE_COLOR}
+                            strokeDasharray="4 4"
+                            strokeOpacity={0.6}
+                            label={{
+                                value: level.level.toLocaleString('id-ID'),
+                                position: 'insideTopLeft',
+                                fill: RESISTANCE_COLOR,
+                                fontSize: 10,
+                            }}
+                        />
+                    ))}
 
                     <Area
                         type="monotone"

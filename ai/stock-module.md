@@ -92,14 +92,91 @@ current coding conventions.
   a cache hit — never cache an Eloquent model object through this app's
   cache store, only plain arrays/scalars.
 
+## Recommendation scoring (v1 — technical only)
+
+`Stocks/Show` computes a live recommendation from price history alone (no
+fundamentals): `App\Support\Stocks\MomentumScoreCalculator` (SMA20/SMA50
+trend + 20-day return) and `App\Support\Stocks\RiskScoreCalculator`
+(annualized volatility from daily returns) each produce a 0-100 score, pure
+and unit-tested the same way as `PriceChangeCalculator`.
+`RecommendationScoreCalculator::combine()` weighs them (70% momentum, 30%
+risk) into a single Beli/Tahan/Jual label, assembled in
+`StockDetailResource` and rendered by `Components/RecommendationCard.tsx`.
+Both calculators return `null`/"Data belum cukup" below their minimum
+history requirement (50 and 31 closing prices respectively) instead of
+guessing. The Learning glossary's `momentum` and `rata-rata-bergerak` terms
+link directly from the card.
+
+This is deliberately **not** the five-component fundamental+valuation+risk
+engine the glossary/lessons already reference (ROE in Module 5, Dividend
+Yield in Module 6, full Risk Score in Module 13) — that needs financial
+statement data (`ai/erd.md` has no such tables yet) this app doesn't fetch.
+Treat this as the first, price-data-only slice of that eventual engine, not
+a replacement for it.
+
+**Data quality caveat**: `stocks:sync-prices` deletes any leftover
+`source = seed:dev` rows for a stock once real data is synced for it —
+mixing synthetic and real prices on different scales silently wrecked the
+volatility calculation (one stock briefly scored 277% annualized
+volatility because a few synthetic-era rows Yahoo didn't return data for
+survived the upsert). If a future provider integration has similar gaps,
+re-check this before trusting the risk score.
+
+The list page (`Stocks/Index`) shows the same recommendation label per row,
+computed the same way via the shared `App\Support\Stocks\StockRecommendationBuilder`
+(used by both `StockListResource` and `StockDetailResource` so the two
+never compute it differently) — `ListStocksAction` batch-loads ~6 months of
+prices for every stock on the page in one query instead of one query per
+row.
+
+**Scheduled sync**: `routes/console.php` runs `stocks:sync-prices` daily at
+17:00 WIB (`Schedule::command(...)->dailyAt(...)->timezone(...)`) so prices
+stay fresh without the manual "Sync Data" button — that requires
+`php artisan schedule:work` (or a real cron entry calling
+`schedule:run` every minute) actually running; it does nothing on its own
+just by existing in the route file.
+
+## Watchlist
+
+`watchlists` (migration + `App\Models\Watchlist`) is a per-user join table,
+same shape as `learning_progress` (UUID PK, unique `(user_id, stock_id)`,
+no soft deletes — toggling is a hard add/remove) rather than the
+dimension-table audit-column convention. `App\Actions\Stocks\ToggleWatchlistAction`
+flips membership; `POST /stocks/{ticker}/watchlist`
+(`StockController::toggleWatchlist`) is the only entry point. `ListStocksAction`
+and `GetStockDetailAction` both take an optional `$userId` to attach
+`is_watchlisted` per stock (batch-loaded for the list, a single `exists()`
+check for the detail page) — `null` when there's no authenticated user
+(there always is one here, since every stock route sits behind `auth`
+middleware, but the parameter stays optional so the actions don't hard-require
+a request context). The list page also accepts `?watchlist_only=1`.
+
+**Frontend gotcha hit here**: `ListStocksRequest::filters()` must never
+return `$this->only([...])` directly — when none of those query params are
+present, PHP's `only()` returns `[]`, which `json_encode`s as a JSON array,
+not an object. On the frontend that turns `filters` into a JS array, where
+`filters.sort` silently resolves to `Array.prototype.sort` (a function,
+always truthy) instead of `undefined`, corrupting the next request's query
+string. Always return a fully-keyed array so it serializes as an object.
+Separately, never combine a default Tailwind color class with a
+conditionally-applied one for the same CSS property (e.g.
+`` `text-slate-300 ${active ? 'text-amber-400' : ''}` ``) — Tailwind's
+generated stylesheet order, not JSX class-string order, decides which one
+wins, so the "conditional" class can silently lose. Pick one class per
+branch instead (see `Components/WatchlistButton.tsx`).
+
 ## Explicitly not built yet (by design — see the original blueprint)
 
-Financial/technical metrics, scoring engine, ranking, backtesting, ML,
-watchlists/portfolio, a real market data provider integration, and the
-import pipeline (`stocks:import` command → job → provider). The
-`Actions/Stocks`, `Services/*`, `Jobs/*` structure this module establishes
-is meant to absorb those without a rewrite — add them when there's an actual
-requirement driving them, not before.
+Fundamental/valuation metrics (need financial statement data), ranking
+beyond a per-stock score, backtesting, ML, portfolio tracking (P&L, cost
+basis), and the import pipeline (`stocks:import` command → job → provider)
+for anything beyond the Yahoo Finance sync (`stocks:sync-prices` /
+`POST /stocks/sync-prices`, see `App\Actions\Stocks\SyncStockPricesAction`
+and `FetchYahooFinancePricesAction`) — that sync is unofficial/best-effort,
+not a real market data provider integration. The `Actions/Stocks`,
+`Services/*`, `Jobs/*` structure this module establishes is meant to absorb
+the rest without a rewrite — add them when there's an actual requirement
+driving them, not before.
 
 ## Running it
 

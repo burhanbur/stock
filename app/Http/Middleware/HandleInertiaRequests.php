@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\LearningGlossaryTerm;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -47,6 +48,12 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'notification' => fn () => $request->session()->get('notification'),
             ],
+            // Shared (not lazy) so any page can render an inline glossary
+            // tooltip via slug lookup without a network round trip. Small,
+            // rarely-changing table (~40 rows) — cheap to include everywhere.
+            'glossaryTerms' => fn () => LearningGlossaryTerm::query()
+                ->get(['slug', 'term', 'full_name', 'simple_definition'])
+                ->keyBy('slug'),
         ];
     }
 }

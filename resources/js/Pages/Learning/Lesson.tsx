@@ -1,6 +1,7 @@
 import { router, Head, Link } from '@inertiajs/react';
 import { ArrowLeft, ArrowRight, CheckCircle2, Circle } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
+import GlossaryTerm from '@/Components/GlossaryTerm';
 import LessonContent from '@/Components/Learning/LessonContent';
 import QuizCard from '@/Components/Learning/QuizCard';
 import { AdjacentLesson, LearningLessonDetail, Quiz, QuizAttemptResult } from '@/types/learning';
@@ -73,13 +74,9 @@ export default function LessonShow({
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                     <span className="text-xs font-medium text-slate-400">Istilah kunci:</span>
                     {lesson.key_terms.map((term) => (
-                        <Link
-                            key={term}
-                            href={route('learning.glossary', { search: term })}
-                            className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-200"
-                        >
-                            {term}
-                        </Link>
+                        <span key={term} className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600 hover:bg-slate-200">
+                            <GlossaryTerm slug={term} />
+                        </span>
                     ))}
                 </div>
             )}

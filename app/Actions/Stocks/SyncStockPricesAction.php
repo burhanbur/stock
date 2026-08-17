@@ -49,6 +49,15 @@ class SyncStockPricesAction
                 );
             }
 
+            // Real data now exists for this stock — any leftover synthetic
+            // seed rows (dates Yahoo didn't return, e.g. gaps/nulls) would
+            // otherwise sit alongside real prices on a completely different
+            // scale and corrupt volatility/momentum calculations.
+            DB::table('stock_prices')
+                ->where('stock_id', $stock->id)
+                ->where('source', 'seed:dev')
+                ->delete();
+
             $summary['synced']++;
             $summary['rows'] += count($rows);
 

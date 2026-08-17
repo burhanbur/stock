@@ -3,6 +3,7 @@
 namespace App\Http\Resources\Stocks;
 
 use App\Models\Stock;
+use App\Support\Stocks\StockRecommendationBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -23,6 +24,8 @@ class StockListResource extends JsonResource
             ] : null),
             'latest_close' => $this->latestPrice?->close !== null ? (float) $this->latestPrice->close : null,
             'latest_trading_date' => $this->latestPrice?->trading_date?->toDateString(),
+            'is_watchlisted' => (bool) ($this->is_watchlisted ?? false),
+            'recommendation' => StockRecommendationBuilder::build($this->recentPrices ?? collect()),
         ];
     }
 }

@@ -1,14 +1,21 @@
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { ArrowLeft, Banknote, Building2, Calendar, Layers } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import MetricCard from '@/Components/MetricCard';
 import ChangeBadge from '@/Components/ChangeBadge';
+import Pagination from '@/Components/Pagination';
+import RecommendationCard from '@/Components/RecommendationCard';
+import StockAnalysisCard from '@/Components/StockAnalysisCard';
+import WatchlistButton from '@/Components/WatchlistButton';
 import StockPriceChart from '@/Components/StockPriceChart';
 import DataTable, { DataTableColumn } from '@/Components/DataTable';
-import { StockDetail, StockPricePoint } from '@/types/stock';
+import { PaginatedResponse, StockAnalysis, StockDetail, StockPricePoint } from '@/types/stock';
 
 interface StockShowProps {
     stock: StockDetail;
+    priceHistory: PaginatedResponse<StockPricePoint>;
+    priceSort: string | null;
+    analysis: StockAnalysis;
 }
 
 function formatPrice(value: number | null, currency: string): string {
@@ -19,21 +26,24 @@ function formatPrice(value: number | null, currency: string): string {
     return `${currency} ${value.toLocaleString('id-ID', { maximumFractionDigits: 0 })}`;
 }
 
-export default function StockShow({ stock }: StockShowProps) {
-    const recentPrices = [...stock.prices].reverse().slice(0, 10);
+export default function StockShow({ stock, priceHistory, priceSort, analysis }: StockShowProps) {
+    const sortPriceHistory = (nextSort: string) => {
+        router.get(route('stocks.show', stock.ticker), { price_sort: nextSort }, { preserveState: true, preserveScroll: true, replace: true });
+    };
 
     const columns: DataTableColumn<StockPricePoint>[] = [
-        { key: 'date', header: 'Tanggal', render: (row) => row.trading_date },
-        { key: 'open', header: 'Open', align: 'right', render: (row) => row.open.toLocaleString('id-ID') },
-        { key: 'high', header: 'High', align: 'right', render: (row) => row.high.toLocaleString('id-ID') },
-        { key: 'low', header: 'Low', align: 'right', render: (row) => row.low.toLocaleString('id-ID') },
+        { key: 'date', header: 'Tanggal', sortKey: 'trading_date', render: (row) => row.trading_date },
+        { key: 'open', header: 'Open', align: 'right', sortKey: 'open', render: (row) => row.open.toLocaleString('id-ID') },
+        { key: 'high', header: 'High', align: 'right', sortKey: 'high', render: (row) => row.high.toLocaleString('id-ID') },
+        { key: 'low', header: 'Low', align: 'right', sortKey: 'low', render: (row) => row.low.toLocaleString('id-ID') },
         {
             key: 'close',
             header: 'Close',
             align: 'right',
+            sortKey: 'close',
             render: (row) => <span className="font-medium text-slate-900">{row.close.toLocaleString('id-ID')}</span>,
         },
-        { key: 'volume', header: 'Volume', align: 'right', render: (row) => row.volume.toLocaleString('id-ID') },
+        { key: 'volume', header: 'Volume', align: 'right', sortKey: 'volume', render: (row) => row.volume.toLocaleString('id-ID') },
     ];
 
     return (
@@ -57,6 +67,7 @@ export default function StockShow({ stock }: StockShowProps) {
                             {!stock.is_active && (
                                 <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700">Tidak aktif</span>
                             )}
+                            <WatchlistButton ticker={stock.ticker} isWatchlisted={stock.is_watchlisted} size={20} />
                         </div>
                         <p className="mt-1 text-slate-600">{stock.company.name}</p>
                         {stock.sector && <p className="mt-0.5 text-sm text-slate-400">{stock.sector.name}</p>}
@@ -79,14 +90,37 @@ export default function StockShow({ stock }: StockShowProps) {
                 <MetricCard label="Mata Uang" value={stock.currency} icon={Banknote} />
             </div>
 
+            <div className="mt-6">
+                <RecommendationCard recommendation={stock.recommendation} />
+            </div>
+
             <div className="mt-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
                 <h2 className="mb-4 text-sm font-semibold text-slate-700">Harga Penutupan — {stock.prices.length} hari terakhir</h2>
-                <StockPriceChart prices={stock.prices} currency={stock.currency} />
+                <StockPriceChart
+                    prices={stock.prices}
+                    currency={stock.currency}
+                    supportLevels={analysis.support_resistance.support}
+                    resistanceLevels={analysis.support_resistance.resistance}
+                />
             </div>
 
             <div className="mt-6">
-                <h2 className="mb-3 text-sm font-semibold text-slate-700">Riwayat Harga Terbaru</h2>
-                <DataTable columns={columns} rows={recentPrices} rowKey={(row) => row.trading_date} />
+                <StockAnalysisCard analysis={analysis} currency={stock.currency} />
+            </div>
+
+            <div className="mt-6">
+                <div className="mb-3 flex items-center justify-between">
+                    <h2 className="text-sm font-semibold text-slate-700">Riwayat Harga</h2>
+                    <span className="text-xs text-slate-400">{priceHistory.total} baris</span>
+                </div>
+                <DataTable
+                    columns={columns}
+                    rows={priceHistory.data}
+                    rowKey={(row) => row.trading_date}
+                    sort={priceSort ?? '-trading_date'}
+                    onSort={sortPriceHistory}
+                />
+                <Pagination links={priceHistory.links} />
             </div>
         </AppLayout>
     );

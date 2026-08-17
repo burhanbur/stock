@@ -15,7 +15,7 @@ class FetchYahooFinancePricesAction
      * unofficial chart endpoint. IDX tickers are queried with the
      * `.JK` suffix (e.g. BBCA -> BBCA.JK).
      *
-     * @return array<int, array{stock_id: string, trading_date: string, open: float, high: float, low: float, close: float, volume: int, source: string, created_at: \Carbon\CarbonImmutable}>
+     * @return array<int, array{stock_id: string, trading_date: string, open: float, high: float, low: float, close: float, volume: int, source: string, created_at: CarbonImmutable}>
      */
     public function execute(Stock $stock, string $range = '6mo'): array
     {

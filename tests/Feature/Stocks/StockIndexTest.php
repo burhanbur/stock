@@ -60,4 +60,34 @@ class StockIndexTest extends TestCase
             ->get(route('stocks.index', ['sort' => 'not-a-real-column']))
             ->assertSessionHasErrors('sort');
     }
+
+    public function test_it_sorts_by_company_name(): void
+    {
+        $sector = Sector::factory()->create();
+        Stock::factory()->for(Company::factory()->for($sector)->create(['name' => 'Zeta Corp']))->create(['ticker' => 'ZETA']);
+        Stock::factory()->for(Company::factory()->for($sector)->create(['name' => 'Alpha Corp']))->create(['ticker' => 'ALPH']);
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('stocks.index', ['sort' => 'company_name']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('stocks.data.0.ticker', 'ALPH')
+                ->where('stocks.data.1.ticker', 'ZETA')
+            );
+    }
+
+    public function test_it_sorts_by_latest_close_descending(): void
+    {
+        $sector = Sector::factory()->create();
+        $cheap = Stock::factory()->for(Company::factory()->for($sector))->create(['ticker' => 'CHEAP']);
+        $pricey = Stock::factory()->for(Company::factory()->for($sector))->create(['ticker' => 'PRICEY']);
+        StockPrice::factory()->for($cheap)->create(['trading_date' => now(), 'close' => 100]);
+        StockPrice::factory()->for($pricey)->create(['trading_date' => now(), 'close' => 9000]);
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('stocks.index', ['sort' => '-latest_close']))
+            ->assertInertia(fn (Assert $page) => $page
+                ->where('stocks.data.0.ticker', 'PRICEY')
+                ->where('stocks.data.1.ticker', 'CHEAP')
+            );
+    }
 }

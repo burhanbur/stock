@@ -9,6 +9,13 @@ export interface Notification {
     message: string;
 }
 
+export interface GlossaryTermData {
+    slug: string;
+    term: string;
+    full_name: string | null;
+    simple_definition: string;
+}
+
 export interface SharedPageProps {
     [key: string]: unknown;
     auth: {
@@ -17,6 +24,7 @@ export interface SharedPageProps {
     flash: {
         notification: Notification | null;
     };
+    glossaryTerms: Record<string, GlossaryTermData>;
 }
 
 declare global {

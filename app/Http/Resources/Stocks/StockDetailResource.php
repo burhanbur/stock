@@ -4,6 +4,7 @@ namespace App\Http\Resources\Stocks;
 
 use App\Models\Stock;
 use App\Support\Stocks\PriceChangeCalculator;
+use App\Support\Stocks\StockRecommendationBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -28,6 +29,7 @@ class StockDetailResource extends JsonResource
             'currency' => $this->currency,
             'listed_at' => $this->listed_at?->toDateString(),
             'is_active' => $this->is_active,
+            'is_watchlisted' => (bool) ($this->is_watchlisted ?? false),
             'company' => [
                 'id' => $this->company->id,
                 'name' => $this->company->name,
@@ -40,6 +42,7 @@ class StockDetailResource extends JsonResource
             'change' => $change['change'],
             'change_percent' => $change['change_percent'],
             'prices' => StockPriceResource::collection($prices)->resolve(),
+            'recommendation' => StockRecommendationBuilder::build($prices),
         ];
     }
 }
