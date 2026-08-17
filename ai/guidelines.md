@@ -6,7 +6,7 @@ The app was originally a Blade + Metronic RBAC admin starter kit. That legacy ad
 
 ## 1. Architectural Patterns
 
-- **Framework:** Laravel, with Inertia.js as the sole bridge to the frontend — no separate REST API for the web app itself.
+- **Framework:** Laravel, with Inertia.js as the primary bridge to the frontend, plus a small read-only public JSON API (`/api/v1/*`) for external consumers — see §6.
 - **Design pattern:** Thin controller → Action (single-use-case class, framework-agnostic data fetching) → `Http/Resources/*` (explicit response shape) → `Inertia::render()` → React page. Never pass raw Eloquent models as Inertia props.
 - **Query strategy:** Direct Eloquent, no repository pattern. Query scopes on the model (e.g. `Stock::scopeSearch()`) for reusable filtering logic.
 - **Frontend:** React + TypeScript, Tailwind v4. Pages live in `resources/js/Pages/**`, shared UI in `resources/js/Components/**`, page shells in `resources/js/Layouts/**`.
@@ -39,9 +39,10 @@ Foreign keys reference the `id` of related tables and are always indexed. Financ
 
 ## 6. Routes
 
-- `routes/web.php` — Inertia pages, grouped under the `auth` middleware.
-- `routes/api.php` — currently empty; add routes here only when the stock domain needs to be exposed outside the Inertia app.
-- Naming: dot-notation matching the domain (`stocks.index`, `stocks.show`).
+- `routes/web.php` — Inertia pages, grouped under the `auth` middleware. Naming: dot-notation matching the domain (`stocks.index`, `stocks.show`).
+- `routes/api.php` — read-only public JSON API (`/api/v1/*`), gated by `api.key:<permission>` middleware (`X-API-KEY` header, checked against `App\Models\ApiKey`; generate one with `php artisan api:generate-key "name" --permissions=<permission>`). Wrapped in the `transform.response.keys` middleware, which camelCases response keys — the API's JSON convention, distinct from the Inertia side's snake_case. An API controller under `Http/Controllers/Api/{Domain}/` must reuse the same `Actions/*` and `Http/Resources/*` as the Inertia controller for that domain, and return responses via `App\Traits\ApiResponse` (`successResponse()`/`errorResponse()`) for the standard `{success, message, data, pagination?}` envelope — never a bespoke shape.
+
+**Never cache an Eloquent model object** (`Cache::remember($key, $ttl, fn () => Model::find(...))`). Round-tripping a serialized model through this app's Redis/Predis setup corrupts it (`unserialize()` returns `__PHP_Incomplete_Class`). Cache `$model->getAttributes()` (a plain array) and rehydrate with `(new Model())->setRawAttributes($attributes, true)` on a cache hit instead — see `ValidateApiKey` middleware for the pattern.
 
 ## 7. Data Integrity & Traceability
 

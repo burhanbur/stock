@@ -114,8 +114,32 @@ app with seeded users (`database/seeders/UserSeeder.php`). The login form
 field is named `identity`, not `email`/`username` — `credentials()` sniffs
 whether the value is an email or a username. `showLoginForm()` returns
 `Inertia::render('Auth/Login')`. A separate JWT guard (`tymon/jwt-auth`)
-exists for a possible future public API but nothing uses it yet —
-`routes/api.php` is currently empty.
+exists but nothing uses it yet.
+
+### Public JSON API (`/api/v1/*`)
+
+`routes/api.php` — currently just `GET /api/v1/stocks` and
+`GET /api/v1/stocks/{ticker}` (`Http/Controllers/Api/Stocks/StockController`).
+Gated by the `api.key:<permission>` middleware (`X-API-KEY` header, checked
+against `App\Models\ApiKey`, permissions are a JSON array on the key —
+`['*']` allows everything). Generate a key with:
+`php artisan api:generate-key "name" --permissions=stocks.read`. Responses
+go through `App\Traits\ApiResponse` (`{success, message, data, pagination?}`
+envelope) and the `transform.response.keys` middleware, which camelCases
+every response key — this is why the API returns `companyName`/`latestClose`
+while the Inertia props for the same data are snake_case (`company_name`);
+they're different consumers of the same `Actions/Stocks/*` +
+`Http/Resources/Stocks/*` layer, not a fork of it. Add new public endpoints
+the same way: reuse the existing Action/Resource, don't duplicate logic in
+the API controller.
+
+**Never cache an Eloquent model object via `Cache::remember()`/`Cache::put()`
+in this app.** `ValidateApiKey` used to cache the `ApiKey` model directly;
+round-tripping a serialized object through this app's Redis setup (Predis)
+corrupts it (`unserialize()` returns `__PHP_Incomplete_Class`), so every
+*second* request with the same key crashed. Cache `$model->getAttributes()`
+(a plain array) instead, and rehydrate with
+`(new Model())->setRawAttributes($attributes, true)` on a cache hit.
 
 ### Testing conventions
 

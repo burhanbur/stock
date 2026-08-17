@@ -1,4 +1,11 @@
 <?php
 
-// No API endpoints yet. Add routes here when the stock domain needs to be
-// exposed outside the Inertia app (see "API Readiness" in ai/stock-module.md).
+use App\Http\Controllers\Api\Stocks\StockController;
+use Illuminate\Support\Facades\Route;
+
+Route::prefix('v1')->middleware(['transform.response.keys'])->group(function () {
+    Route::prefix('stocks')->middleware(['api.key:stocks.read'])->group(function () {
+        Route::get('/', [StockController::class, 'index']);
+        Route::get('{ticker}', [StockController::class, 'show']);
+    });
+});

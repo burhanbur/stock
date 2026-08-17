@@ -40,6 +40,18 @@ current coding conventions.
   prices are a synthetic random walk (`StockPriceSeeder`, `source =
   seed:dev`) — clearly not real market data. The UI shows a "data
   pengembangan" disclaimer for this reason.
+- **Public JSON API** (`routes/api.php`, `/api/v1/stocks`, `/api/v1/stocks/{ticker}`):
+  read-only, gated by the pre-existing `api.key` middleware
+  (`X-API-KEY` header, checked against `App\Models\ApiKey`). Reuses the exact
+  same `Actions/Stocks/*` and `Http/Resources/Stocks/*` as the Inertia pages —
+  the API controller (`Http/Controllers/Api/Stocks/StockController`) is a
+  thin second consumer of the same domain layer, not a parallel
+  implementation. Responses go through `App\Traits\ApiResponse` (standard
+  `{success, message, data, pagination?}` envelope, already used elsewhere in
+  the starter kit) and `transform.response.keys` middleware (camelCases
+  response keys — the Inertia side stays snake_case, matching Laravel/PHP
+  convention, since that's a different consumer). Generate a key with
+  `php artisan api:generate-key "name" --permissions=stocks.read`.
 
 ## Deliberate deviations from a from-scratch blueprint
 
@@ -69,6 +81,16 @@ current coding conventions.
   fail on Postgres. Also added `APP_URL` override in `phpunit.xml` — the
   real `.env` has `APP_URL=http://localhost/stock` for a local path-based
   vhost alias, which broke every `route()`-based HTTP test.
+- Fixed a real, currently-reachable bug in the pre-existing
+  `App\Http\Middleware\ValidateApiKey`: it cached the `ApiKey` **Eloquent
+  model** in Redis via `Cache::remember()`. Round-tripping a serialized
+  object through this app's Redis setup (Predis) corrupts it —
+  `unserialize()` comes back as `__PHP_Incomplete_Class`, so every second
+  request with the same key within the 5-minute cache window 500'd. Fixed
+  by caching `$model->getAttributes()` (a plain array) instead and
+  rehydrating via `(new ApiKey())->setRawAttributes($attributes, true)` on
+  a cache hit — never cache an Eloquent model object through this app's
+  cache store, only plain arrays/scalars.
 
 ## Explicitly not built yet (by design — see the original blueprint)
 

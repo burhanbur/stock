@@ -200,9 +200,17 @@ php artisan test tests/Feature/Stocks/StockIndexTest.php
 php artisan test --filter=nama_method_test
 ```
 
-## API Documentation
+## Public API
 
-Repo ini menyertakan paket Swagger (`darkaonline/l5-swagger` dan `zircote/swagger-php`), disiapkan untuk API publik di masa depan — belum ada endpoint yang aktif memakainya (`routes/api.php` masih kosong).
+Ada API JSON read-only publik untuk data saham di `/api/v1/stocks` dan `/api/v1/stocks/{ticker}`, di-gate lewat header `X-API-KEY`. Bikin API key:
+
+```bash
+php artisan api:generate-key "Nama Aplikasi" --permissions=stocks.read
+```
+
+Lalu panggil dengan header `X-API-KEY: <key>`. Response konsisten pakai envelope `{success, message, data, pagination?}` (trait `ApiResponse`) dan key JSON-nya camelCase (middleware `transform.response.keys`) — beda dengan props Inertia yang snake_case, karena ini konsumen yang berbeda dari layer domain yang sama.
+
+Repo ini juga menyertakan paket Swagger (`darkaonline/l5-swagger` dan `zircote/swagger-php`) untuk dokumentasi API di masa depan — belum dipasangi anotasi untuk endpoint saham.
 
 ## Tips Pengembangan
 
