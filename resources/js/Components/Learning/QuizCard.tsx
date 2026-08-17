@@ -33,7 +33,7 @@ export default function QuizCard({ quiz, latestAttempt }: QuizCardProps) {
     };
 
     return (
-        <div className="rounded-lg border border-slate-200 bg-white p-5">
+        <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
             <div className="mb-4 flex items-center justify-between">
                 <h3 className="text-sm font-semibold text-slate-900">{quiz.title}</h3>
                 {showResults && (
@@ -76,7 +76,7 @@ export default function QuizCard({ quiz, latestAttempt }: QuizCardProps) {
                                             type="button"
                                             disabled={showResults}
                                             onClick={() => setAnswers((prev) => ({ ...prev, [question.id]: option.id }))}
-                                            className={`flex w-full items-center justify-between rounded-md border px-3 py-2 text-left text-sm transition-colors ${optionClass} ${
+                                            className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left text-sm transition-colors ${optionClass} ${
                                                 showResults ? 'cursor-default' : 'cursor-pointer'
                                             }`}
                                         >
@@ -116,7 +116,7 @@ export default function QuizCard({ quiz, latestAttempt }: QuizCardProps) {
                         type="button"
                         onClick={submit}
                         disabled={!allAnswered || submitting}
-                        className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                        className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-blue-600/30 transition-colors hover:bg-blue-700 disabled:opacity-50 disabled:shadow-none"
                     >
                         Periksa Jawaban
                     </button>

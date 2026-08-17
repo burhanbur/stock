@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Head, router } from '@inertiajs/react';
+import { Search } from 'lucide-react';
 import AppLayout from '@/Layouts/AppLayout';
 import { GlossaryTerm } from '@/types/learning';
 
@@ -29,22 +30,25 @@ export default function Glossary({ terms, search }: GlossaryProps) {
         <AppLayout>
             <Head title="Kamus Istilah Saham" />
 
-            <h1 className="text-xl font-semibold text-slate-900">Kamus Istilah Saham</h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Kamus Istilah Saham</h1>
             <p className="mt-1 text-sm text-slate-500">Cari istilah yang belum kamu pahami dari pelajaran manapun.</p>
 
-            <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari istilah, misalnya ROE, dividen, IPO..."
-                className="mt-4 w-full max-w-md rounded-md border border-slate-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-            />
+            <div className="relative mt-4 max-w-md">
+                <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+                <input
+                    type="text"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Cari istilah, misalnya ROE, dividen, IPO..."
+                    className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm transition-colors focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500"
+                />
+            </div>
 
             <div className="mt-6 space-y-4">
                 {terms.length === 0 && <p className="text-sm text-slate-400">Tidak ada istilah yang cocok.</p>}
 
                 {terms.map((term) => (
-                    <div key={term.slug} id={term.slug} className="rounded-lg border border-slate-200 bg-white p-4">
+                    <div key={term.slug} id={term.slug} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                         <div className="flex items-baseline gap-2">
                             <h2 className="text-sm font-semibold text-slate-900">{term.term}</h2>
                             {term.full_name && <span className="text-sm text-slate-400">({term.full_name})</span>}

@@ -20,4 +20,7 @@ export default defineConfig({
             '@': '/resources/js',
         },
     },
+    server: {
+        port: 5172,
+    },
 });

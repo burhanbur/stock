@@ -27,17 +27,17 @@ export default function LearningModuleShow({ module, is_locked, lessons }: Modul
                 <span className="text-xs font-medium text-slate-400">Modul {module.order}</span>
                 <LevelBadge level={module.level} label={module.level_label} />
             </div>
-            <h1 className="mt-1 text-xl font-semibold text-slate-900">{module.title}</h1>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight text-slate-900">{module.title}</h1>
             {module.description && <p className="mt-1 text-sm text-slate-500">{module.description}</p>}
 
             {is_locked && (
-                <div className="mt-4 flex items-center gap-2 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                <div className="mt-4 flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
                     <Lock size={16} aria-hidden="true" />
                     Selesaikan modul sebelumnya untuk membuka modul ini.
                 </div>
             )}
 
-            <div className="mt-6 divide-y divide-slate-100 overflow-hidden rounded-lg border border-slate-200 bg-white">
+            <div className="mt-6 divide-y divide-slate-100 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                 {lessons.map((lesson, index) => {
                     const row = (
                         <div

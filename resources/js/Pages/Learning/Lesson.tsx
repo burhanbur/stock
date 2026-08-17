@@ -41,7 +41,7 @@ export default function LessonShow({
             </Link>
 
             <div className="mt-3 flex items-center justify-between gap-4">
-                <h1 className="text-xl font-semibold text-slate-900">{lesson.title}</h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{lesson.title}</h1>
                 {is_completed && (
                     <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">
                         <CheckCircle2 size={12} aria-hidden="true" />
@@ -52,7 +52,7 @@ export default function LessonShow({
             <p className="mt-1 text-xs text-slate-400">{lesson.estimated_minutes} menit</p>
 
             {lesson.learning_objectives.length > 0 && (
-                <div className="mt-4 rounded-lg border border-slate-200 bg-white p-4">
+                <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                     <h2 className="mb-2 text-xs font-medium tracking-wide text-slate-400 uppercase">Tujuan Belajar</h2>
                     <ul className="space-y-1.5">
                         {lesson.learning_objectives.map((objective) => (
@@ -65,7 +65,7 @@ export default function LessonShow({
                 </div>
             )}
 
-            <div className="mt-6 rounded-lg border border-slate-200 bg-white p-5">
+            <div className="mt-6 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
                 <LessonContent content={lesson.content} />
             </div>
 
@@ -94,7 +94,7 @@ export default function LessonShow({
                 <button
                     type="button"
                     onClick={markComplete}
-                    className="mt-6 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                    className="mt-6 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm shadow-blue-600/30 transition-colors hover:bg-blue-700"
                 >
                     Tandai Selesai
                 </button>

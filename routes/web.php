@@ -19,6 +19,7 @@ Route::group(['middleware' => ['auth']], function () {
 
     Route::group(['prefix' => 'stocks'], function () {
         Route::get('/', [StockController::class, 'index'])->name('stocks.index');
+        Route::post('sync-prices', [StockController::class, 'syncPrices'])->name('stocks.sync-prices');
         Route::get('{ticker}', [StockController::class, 'show'])->name('stocks.show');
     });
 

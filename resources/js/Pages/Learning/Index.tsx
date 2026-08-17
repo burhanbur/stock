@@ -18,14 +18,14 @@ export default function LearningIndex({
             <Head title="Pusat Belajar Saham" />
 
             <div className="mb-6">
-                <h1 className="text-xl font-semibold text-slate-900">Pusat Belajar Saham</h1>
+                <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Pusat Belajar Saham</h1>
                 <p className="mt-1 text-sm text-slate-500">
                     Dari nol sampai bisa memahami skor rekomendasi saham kami — selangkah demi selangkah.
                 </p>
             </div>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <div className="rounded-lg border border-slate-200 bg-white p-4 sm:col-span-2">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:col-span-2">
                     <div className="flex items-center justify-between text-sm">
                         <span className="font-medium text-slate-700">Progres Keseluruhan</span>
                         <span className="tabular-nums text-slate-500">
@@ -36,7 +36,7 @@ export default function LearningIndex({
                     <div className="mt-1 text-right text-xs text-slate-400">{overall_percent}%</div>
                 </div>
 
-                <div className="rounded-lg border border-slate-200 bg-white p-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="text-sm font-medium text-slate-700">Rata-rata Kuis</div>
                     <div className="mt-1 text-2xl font-semibold text-slate-900 tabular-nums">
                         {quiz_average !== null ? `${quiz_average}%` : '-'}
@@ -47,7 +47,7 @@ export default function LearningIndex({
             {continue_lesson && (
                 <Link
                     href={route('learning.lessons.show', [continue_lesson.module_slug, continue_lesson.lesson_slug])}
-                    className="mt-4 flex items-center justify-between rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm hover:bg-blue-100"
+                    className="mt-4 flex items-center justify-between rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm shadow-sm transition-colors hover:bg-blue-100"
                 >
                     <span className="flex items-center gap-2 font-medium text-blue-700">
                         <Sparkles size={16} aria-hidden="true" />
@@ -73,8 +73,8 @@ export default function LearningIndex({
                     {modules.map((module) => {
                         const content = (
                             <div
-                                className={`rounded-lg border bg-white p-4 transition-colors ${
-                                    module.is_locked ? 'border-slate-200 opacity-60' : 'border-slate-200 hover:border-blue-300'
+                                className={`rounded-xl border bg-white p-4 shadow-sm transition-all ${
+                                    module.is_locked ? 'border-slate-200 opacity-60' : 'border-slate-200 hover:border-blue-300 hover:shadow-md'
                                 }`}
                             >
                                 <div className="flex items-start justify-between gap-4">
