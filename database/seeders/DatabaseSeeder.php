@@ -21,6 +21,11 @@ class DatabaseSeeder extends Seeder
                 SectorSeeder::class,
                 CompanySeeder::class,
                 StockPriceSeeder::class,
+
+                LearningModuleSeeder::class,
+                LearningLessonSeeder::class,
+                LearningQuizSeeder::class,
+                LearningGlossarySeeder::class,
             ]);
 
             DB::commit();

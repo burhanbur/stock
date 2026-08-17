@@ -9,7 +9,10 @@ built on a Laravel starter kit. The kit originally shipped a Blade +
 Metronic RBAC admin panel (users/roles/menus, an approval-workflow engine,
 a payment integration); that legacy admin has been **removed entirely** —
 the app is now **Inertia.js + React + TypeScript** end to end, including
-login. See `ai/stock-module.md` for the full history/rationale and
+login. Two domains exist today: **Stocks** (`/stocks`, browsing IDX tickers
+and price history) and **Learning** (`/learning`, an interactive stock
+market curriculum for a beginner). See `ai/stock-module.md` and
+`ai/learning-module.md` for the full history/rationale of each, and
 `ai/guidelines.md` for coding conventions.
 
 Stack: Laravel 13, PHP 8.3+, PostgreSQL, Redis (cache; queue currently
@@ -148,3 +151,28 @@ Feature tests for Inertia pages use `Inertia\Testing\AssertableInertia` via
 Pure calculation logic (e.g. `App\Support\Stocks\PriceChangeCalculator`)
 gets its own deterministic unit tests with known input/output pairs rather
 than only being exercised indirectly through a Feature test.
+
+### Learning Center (`/learning/*`)
+
+An interactive stock-market curriculum living alongside the Stock module —
+same layering (thin `Http/Controllers/Learning/*` → `Actions/Learning/*` →
+React pages under `resources/js/Pages/Learning`). Only one module is
+seeded so far ("Dasar-Dasar Saham" / Module 01); see `ai/learning-module.md`
+for what's deliberately not built yet and why, and for the content-authoring
+convention (new lessons go in `database/seeders/Learning*Seeder.php` as
+Markdown heredocs, not migrations or hardcoded React). Two things worth
+knowing before touching this module:
+
+- **Lesson/module locking is linear and implicit** (`App\Support\Learning\ModuleLock`)
+  — a lesson unlocks when the previous lesson in its module is completed; a
+  module unlocks when every lesson in the previous module is completed.
+  There's no general prerequisite graph.
+- **Quiz correct answers/explanations are never sent to the client before
+  grading.** `LearningLessonController::quizForDisplay()` strips
+  `is_correct`/`explanation`; those only appear in `latest_attempt`, which
+  is built *after* an attempt exists by recomputing
+  `App\Support\Learning\QuizGrader::grade()` (a pure, unit-tested function —
+  same pattern as `PriceChangeCalculator`) against the stored answers. If
+  you add a new way to display a quiz, reuse `quizForDisplay()`'s shape;
+  don't pass the raw `LearningQuestion`/`LearningQuestionOption` models to
+  Inertia.

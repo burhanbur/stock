@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail; // Uncomment this line if you want to implement email verification
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -93,5 +94,15 @@ class User extends Authenticatable implements JWTSubject
     public function getJWTCustomClaims()
     {
         return $this->customClaims ?? [];
+    }
+
+    public function learningProgress(): HasMany
+    {
+        return $this->hasMany(LearningProgress::class);
+    }
+
+    public function learningQuizAttempts(): HasMany
+    {
+        return $this->hasMany(LearningQuizAttempt::class);
     }
 }

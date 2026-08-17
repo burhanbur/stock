@@ -120,3 +120,132 @@ table stock_prices {
     (trading_date)
   }
 }
+
+//////////////////////////////////////////////////////////////
+// LEARNING DOMAIN (Stock Learning Center)
+//////////////////////////////////////////////////////////////
+table learning_modules {
+  id uuid [pk]
+  order smallint [note: 'Curriculum sequence, e.g. Module 01 = 1']
+  slug varchar [unique]
+  level varchar(20) [note: 'ModuleLevel enum: beginner, intermediate, advanced, quant']
+  title varchar
+  description text
+  created_by uuid
+  updated_by uuid
+  deleted_by uuid
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+  deleted_at timestamp
+
+  indexes {
+    (order)
+  }
+}
+
+// Prerequisites are intentionally implicit: a lesson requires the previous
+// `order` within its module to be completed, and a module requires the
+// previous module (by `order`) to be fully completed — not a general
+// prerequisite graph. See ai/learning-module.md.
+table learning_lessons {
+  id uuid [pk]
+  module_id uuid [ref: > learning_modules.id]
+  order smallint
+  slug varchar [unique]
+  title varchar
+  estimated_minutes smallint [default: 10]
+  learning_objectives json [note: 'Array of strings']
+  key_terms json [note: 'Array of learning_glossary_terms.slug referenced by this lesson']
+  content longtext [note: 'Lesson body, Markdown']
+  summary text
+  created_by uuid
+  updated_by uuid
+  deleted_by uuid
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+  deleted_at timestamp
+
+  indexes {
+    (module_id, order) [unique]
+  }
+}
+
+table learning_quizzes {
+  id uuid [pk]
+  lesson_id uuid [ref: > learning_lessons.id]
+  title varchar
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+table learning_questions {
+  id uuid [pk]
+  quiz_id uuid [ref: > learning_quizzes.id]
+  order smallint
+  type varchar(20) [default: 'multiple_choice', note: 'QuestionType enum']
+  question text
+  explanation text [note: 'Shown after answering, correct or not']
+  difficulty varchar(10) [note: 'easy, medium, hard']
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+table learning_question_options {
+  id uuid [pk]
+  question_id uuid [ref: > learning_questions.id]
+  order smallint
+  text varchar
+  is_correct boolean [default: false]
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+}
+
+table learning_glossary_terms {
+  id uuid [pk]
+  slug varchar [unique]
+  term varchar
+  full_name varchar [note: 'e.g. "Return on Equity" for the term "ROE"']
+  simple_definition text
+  formal_definition text
+  example text
+  application_usage text [note: '"Why this matters to our system" section']
+  related_term_slugs json
+  created_by uuid
+  updated_by uuid
+  deleted_by uuid
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+  deleted_at timestamp
+}
+
+table learning_progress {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  lesson_id uuid [ref: > learning_lessons.id]
+  status varchar(20) [default: 'in_progress', note: 'ProgressStatus enum']
+  started_at timestamp
+  completed_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, lesson_id) [unique]
+  }
+}
+
+table learning_quiz_attempts {
+  id uuid [pk]
+  user_id uuid [ref: > users.id]
+  quiz_id uuid [ref: > learning_quizzes.id]
+  total_questions smallint
+  correct_answers smallint
+  score decimal(5,2) [note: 'Percentage, 0-100']
+  answers json [note: 'Map of question_id => selected_option_id']
+  attempted_at timestamp
+  created_at timestamp [default: `CURRENT_TIMESTAMP`]
+  updated_at timestamp [default: `CURRENT_TIMESTAMP`]
+
+  indexes {
+    (user_id, quiz_id)
+  }
+}
